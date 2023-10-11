@@ -3,6 +3,7 @@ const { ServerApiVersion } = require("mongodb");
 
 require('dotenv').config();
 
+// generate connection url from mongodb atlas website
 const url = process.env.DATABASE_URL
 
 async function connectToDatabase() {
