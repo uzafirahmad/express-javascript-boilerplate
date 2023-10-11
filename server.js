@@ -15,7 +15,7 @@ connectToDatabase();
 
 // Available Routes
 app.use('/auth',require('./authentication/Urls'))
-// app.use('/crud',require('./crud/Urls'))
+app.use('/crud',require('./crud/Urls'))
 
 
 // Run Server on specified port
