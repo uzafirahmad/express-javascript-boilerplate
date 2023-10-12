@@ -2,10 +2,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-<<<<<<< HEAD
     "dotenv": "^16.3.1",
-=======
->>>>>>> 6cd15a0b10aea831ee0995ef2918d072a7e928be
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.1.0",

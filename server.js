@@ -2,7 +2,7 @@ const express = require("express");
 const connectToDatabase = require("./db");
 const cors = require('cors');
 
-const port = 5000;
+const port = 5001;
 const app = express();
 
 //middleware
@@ -11,7 +11,6 @@ app.use(express.json())
 
 //database connection
 connectToDatabase();
-
 
 // Available Routes
 app.use('/auth',require('./authentication/Urls'))
