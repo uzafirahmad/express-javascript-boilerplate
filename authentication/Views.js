@@ -150,9 +150,7 @@ const getToken = async (req, res) => {
 
     // Verify if the refreshToken exists in the database and is not expired
     // Also, retrieve the associated user
-    const storedToken = await RefreshToken.findOne({ refreshToken }).populate(
-      "user"
-    );
+    const storedToken = await RefreshToken.findOne({ refreshToken })
 
     if (!storedToken || storedToken.expires < new Date()) {
       return res
