@@ -96,6 +96,7 @@ const loginUser = async (req, res) => {
           const payload = {
             id: user.id,
             email: user.email,
+            username: user.username
           };
           const accessToken = jwt.sign(payload, JWT_SECRET, {
             expiresIn: "5m",
@@ -180,6 +181,7 @@ const getToken = async (req, res) => {
     const payload = {
       id: user.id,
       email: user.email,
+      username: user.username
       // include any other user data needed in the token
     };
 
