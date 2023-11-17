@@ -31,21 +31,23 @@ const signupUser = async (req, res) => {
     if (!email || !password || !confirmPassword || !username) {
       return res
         .status(400)
-        .json({ message: "Email, password, username, and confirm password are required." });
+        .json({
+          message:
+            "Email, password, username, and confirm password are required.",
+        });
     }
 
     // Check if passwords match
     if (password !== confirmPassword) {
-      return res
-        .status(400)
-        .json({ message: "Passwords do not match." });
+      return res.status(400).json({ message: "Passwords do not match." });
     }
 
     // Password validation
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$&*]).{6,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
-        message: "Password must be at least 6 characters long, include at least 1 uppercase letter, and at least 1 special character."
+        message:
+          "Password must be at least 6 characters long, include at least 1 uppercase letter, and at least 1 special character.",
       });
     }
 
@@ -61,7 +63,7 @@ const signupUser = async (req, res) => {
     } else {
       const salt = await bcrypt.genSalt(10);
       const securePassword = await bcrypt.hash(password, salt);
-      
+
       // Create a new user instance with the provided email, username, and password
       await User.create({
         email: email,
@@ -76,8 +78,6 @@ const signupUser = async (req, res) => {
     res.status(500).json({ message: "Error creating user" });
   }
 };
-
-
 
 const loginUser = async (req, res) => {
   // Change to POST method since you are creating a new user
@@ -131,6 +131,20 @@ const loginUser = async (req, res) => {
   }
 };
 
+const verify = async (req, res) => {
+  const { accesstoken } = req.body;
+  try {
+    // Verify the token
+    const decoded = jwt.verify(accesstoken, JWT_SECRET);
+ 
+    // If verification is successful
+    res.status(201).json({ valid: true, message: "Token is valid" });
+  } catch (error) {
+    // If verification fails
+    res.status(401).json({ valid: false, message: "Invalid or expired token" });
+  }
+};
+
 const getToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -150,7 +164,7 @@ const getToken = async (req, res) => {
 
     // Verify if the refreshToken exists in the database and is not expired
     // Also, retrieve the associated user
-    const storedToken = await RefreshToken.findOne({ refreshToken })
+    const storedToken = await RefreshToken.findOne({ refreshToken });
 
     if (!storedToken || storedToken.expires < new Date()) {
       return res
@@ -205,4 +219,5 @@ module.exports = {
   fetchUser,
   signupUser,
   getToken,
+  verify,
 };
