@@ -1,7 +1,11 @@
-export const handleConnection = (socket) => {
-    console.log("socket connected", socket.id)
-};
+class SocketController {
+    handleConnection = (socket) => {
+        console.log("socket connected", socket.id)
+    };
 
-export const handleDisconnection = async (socket) => {
-    console.log("socket disconnected", socket.id)
-};
+    handleDisconnection = async (socket) => {
+        console.log("socket disconnected", socket.id)
+    };
+}
+
+export default SocketController

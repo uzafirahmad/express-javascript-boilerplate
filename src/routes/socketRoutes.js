@@ -1,14 +1,13 @@
-import {
-    handleConnection,
-    handleDisconnection,
-} from '../controllers/socketControllers.js';
+import SocketController from '../controllers/socketControllers.js';
+
+const socketController = new SocketController()
 
 const socketRoutes = (io) => {
     io.on('connection', (socket) => {
-        handleConnection(socket);
+        socketController.handleConnection(socket)
 
         socket.on('disconnect', async () => {
-            handleDisconnection(socket);
+            socketController.handleDisconnection(socket);
         });
 
     })
