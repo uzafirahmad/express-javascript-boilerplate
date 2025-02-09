@@ -1,6 +1,4 @@
-import SocketController from '../controllers/socketControllers.js';
-
-const socketController = new SocketController()
+import socketController from '../controllers/socket.controller.js'
 
 const socketRoutes = (io) => {
     io.on('connection', (socket) => {

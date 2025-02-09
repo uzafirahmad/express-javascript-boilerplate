@@ -8,4 +8,5 @@ class SocketController {
     };
 }
 
-export default SocketController
+const socketController = new SocketController()
+export default socketController

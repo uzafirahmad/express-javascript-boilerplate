@@ -1,13 +1,7 @@
-import { app, socket } from './app.js';
+import { server } from './app.js';
 
-const REST_PORT = process.env.REST_PORT || 8000;
-const SOCKET_PORT = process.env.SOCKET_PORT || 8080;
+const PORT = process.env.PORT || 8000;
 
-
-app.listen(REST_PORT, () => {
-    console.log(`REST server is running at port ${REST_PORT}`);
-});
-
-socket.listen(SOCKET_PORT, () => {
-    console.log(`SOCKET server running on port ${SOCKET_PORT}`);
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

@@ -1,4 +1,4 @@
-class DatabaseOperations {
+class MongooseDatabaseOperations {
     constructor(model) {
         this.model = model;
     }
@@ -48,4 +48,4 @@ class DatabaseOperations {
     }
 }
 
-export default DatabaseOperations;
+export default MongooseDatabaseOperations;

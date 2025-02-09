@@ -1,21 +1,19 @@
-const validatePassword = (password) => {
-    const validated = false
+import { validationResult } from 'express-validator';
 
-    if (!password || password.length < 6) {
-        return false
+const validateDTO = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            status: 'error',
+            errors: errors.array().map(err => ({
+                field: err.path,
+                message: err.msg
+            }))
+        });
     }
-
-    if (!/[A-Z]/.test(password)) {
-        return false
-    }
-
-    if (!/[!@#$&*]/.test(password)) {
-        return false
-    }
-
-    return true
+    next();
 };
 
 export {
-    validatePassword
+    validateDTO
 }

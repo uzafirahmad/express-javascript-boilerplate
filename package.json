@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "start:dev": "dotenv -e .env.development -- nodemon src/server.js",
-    "start:prod": "dotenv -e .env.production -- nodemon src/server.js",
-    "start": "npm run start:prod"
+    "dev": "dotenv -e .env.development -- nodemon src/server.js",
+    "prod": "dotenv -e .env.production -- nodemon src/server.js",
+    "start": "npm run prod"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -10,6 +10,7 @@
     "crypto-random-string": "^5.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "multer": "^1.4.5-lts.1",

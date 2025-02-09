@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import connectToDatabase from './config/db.js';
+import connectToDatabase from './config/mongodb.js';
 import { redisConnection } from './config/redis.js';
 import http from 'http';
 import { Server } from 'socket.io';
-import authRoutes from './routes/authRoutes.js';
-import socketRoutes from './routes/socketRoutes.js';
+import authRoutes from './routes/auth.routes.js';
+import socketRoutes from './routes/socket.routes.js';
 
 const app = express();
 
@@ -13,11 +13,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Create HTTP server for Socket.IO
-const socket = http.createServer(app);
-// const io = new Server(socket);
+// Create HTTP server for both Express and Socket.IO
+const server = http.createServer(app);
 
-const io = new Server(socket, {
+// Initialize Socket.IO
+const io = new Server(server, {
     cors: {
         origin: '*', // Allow all origins for testing purposes
         methods: ['GET', 'POST'],
@@ -32,13 +32,9 @@ connectToDatabase();
 redisConnection();
 
 // REST routes
-app.use('/', authRoutes);
+app.use('/auth', authRoutes);
 
 // SOCKET Routes
 socketRoutes(io);
 
-// SOCKET API routes
-// const socketNamespace = io.of('/');
-// socketRoutes(socketNamespace);
-
-export { app, socket, io };
+export { app, server, io };

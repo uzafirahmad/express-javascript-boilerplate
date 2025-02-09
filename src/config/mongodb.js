@@ -9,7 +9,6 @@ const url = process.env.DATABASE_URL;
 
 async function connectToDatabase() {
     try {
-        // Use mongoose to connect
         await mongoose.connect(url, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
