@@ -8,22 +8,19 @@ const router = express.Router();
 
 router.post(
     "/register",
-    authDTO.getRegisterValidation(),
-    validateDTO,
+    validateDTO(authDTO.getRegisterValidation()),
     (req, res) => authController.register(req, res)
 );
 
 router.post(
     "/login",
-    authDTO.getLoginValidation(),
-    validateDTO,
+    validateDTO(authDTO.getLoginValidation()),
     (req, res) => authController.login(req, res)
 );
 
 router.post(
     "/refresh",
-    authDTO.getRefreshTokenValidation(),
-    validateDTO,
+    validateDTO(authDTO.getRefreshTokenValidation()),
     (req, res) => authController.refresh(req, res)
 );
 

@@ -52,12 +52,6 @@ const RefreshTokenSchema = new mongoose.Schema({
     }
 });
 
-const BlacklistedToken = mongoose.model('BlacklistedToken', BlacklistedTokenSchema);
-const User = mongoose.model('User', UserSchema);
-const RefreshToken = mongoose.model('RefreshToken', RefreshTokenSchema);
-
-export {
-    User,
-    RefreshToken,
-    BlacklistedToken
-};
+export const BlacklistedToken = mongoose.model('BlacklistedToken', BlacklistedTokenSchema);
+export const User = mongoose.model('User', UserSchema);
+export const RefreshToken = mongoose.model('RefreshToken', RefreshTokenSchema);
