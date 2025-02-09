@@ -1,7 +1,7 @@
 import { body } from 'express-validator';
 
 class AuthDTO {
-    getRegisterValidation() {
+    registerDTO() {
         return [
             body('email')
                 .isEmail()
@@ -22,7 +22,7 @@ class AuthDTO {
         ];
     }
 
-    getLoginValidation() {
+    loginDTO() {
         return [
             body('email')
                 .isEmail()
@@ -34,7 +34,7 @@ class AuthDTO {
         ];
     }
 
-    getRefreshTokenValidation() {
+    refreshDTO() {
         return [
             body('refreshToken')
                 .notEmpty()
