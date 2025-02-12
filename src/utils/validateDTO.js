@@ -1,6 +1,6 @@
 import { validationResult } from 'express-validator';
 
-export const validateDTO = (validations) => {
+const validateDTO = (validations) => {
     return [
         ...validations,
         (req, res, next) => {
@@ -18,3 +18,5 @@ export const validateDTO = (validations) => {
         }
     ];
 };
+
+export default validateDTO

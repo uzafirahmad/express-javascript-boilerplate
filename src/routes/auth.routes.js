@@ -1,7 +1,7 @@
 import express from 'express';
 import fetchUser from '../middleware/fetchUser.js';
 import authController from '../controllers/auth.controller.js';
-import { validateDTO } from '../utils/validators.js';
+import validateDTO from '../utils/validateDTO.js';
 import authDTO from '../dtos/auth.dto.js';
 
 const router = express.Router();
