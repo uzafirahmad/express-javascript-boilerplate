@@ -53,11 +53,6 @@ class AuthService {
         const accessToken = authUtils.generateAccessToken(payload);
         const refreshToken = await authUtils.generateRefreshToken(payload);
 
-        this.refreshTokenRepository.create({
-            refreshToken: refreshToken,
-            user: user.id,
-        });
-
         return {
             accessToken,
             refreshToken
