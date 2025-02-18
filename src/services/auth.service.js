@@ -9,7 +9,6 @@ import authUtils from '../utils/auth.utils.js';
 
 class AuthService {
     constructor() {
-        this.jwtSecret = process.env.JWT_SECRET;
         this.userRepository = new MongooseDatabaseOperations(User);
         this.refreshTokenRepository = new MongooseDatabaseOperations(RefreshToken);
         this.blacklistedTokenRepository = new MongooseDatabaseOperations(BlacklistedToken);
@@ -51,8 +50,8 @@ class AuthService {
 
         const payload = authUtils.createPayload(user)
 
-        const accessToken = jwt.sign(payload, this.jwtSecret, { expiresIn: "5m" });
-        const refreshToken = randomString.generate(10);
+        const accessToken = authUtils.generateAccessToken(payload);
+        const refreshToken = await authUtils.generateRefreshToken(payload);
 
         this.refreshTokenRepository.create({
             refreshToken: refreshToken,
@@ -66,37 +65,44 @@ class AuthService {
     }
 
     async refresh(refreshToken) {
-        const isBlacklisted = await this.blacklistedTokenRepository.findOne({ token: refreshToken });
+        try {
+            // Check if the token is blacklisted
+            const isBlacklisted = await this.blacklistedTokenRepository.findOne({ token: refreshToken });
+            if (isBlacklisted) {
+                throw new CustomError("Token has been invalidated", 401);
+            }
 
-        if (isBlacklisted) {
+            // Decrypt the refresh token to get the payload
+            const decoded = await authUtils.decryptRefreshToken(refreshToken);
+
+            // Check if the refresh token has expired
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (decoded.exp < currentTime) {
+                throw new CustomError("Refresh token has expired", 401);
+            }
+
+            // Verify it's actually a refresh token
+            if (decoded.tokenType !== 'refresh') {
+                throw new CustomError("Invalid token type", 401);
+            }
+
+            const item = authUtils.createPayload(decoded)
+
+            // Generate new tokens
+            const accessTokenNew = authUtils.generateAccessToken(item);
+            const refreshTokenNew = await authUtils.generateRefreshToken(item);
+
+            // Blacklist the used refresh token so it cannot be reused
+            await this.blacklistedTokenRepository.create({ token: refreshToken });
+
+            return { accessTokenNew, refreshTokenNew };
+        } catch (error) {
             throw new CustomError("Invalid refresh token", 401);
         }
+    }
 
-        const storedToken = await this.refreshTokenRepository.findOne(
-            { refreshToken },
-            'user'  // populate the user field
-        );
-
-        if (!storedToken || storedToken.expires < new Date() || !storedToken.user) {
-            throw new CustomError("Invalid refresh token", 401);
-        }
-
-        const payload = authUtils.createPayload(storedToken.user)
-
-        const accessTokenNew = jwt.sign(payload, this.jwtSecret, { expiresIn: "5m" });
-        const refreshTokenNew = randomString.generate(10);
-
-        this.refreshTokenRepository.create({
-            refreshToken: refreshTokenNew,
-            user: storedToken.user._id,
-        });
-
-        this.blacklistedTokenRepository.create({ token: refreshToken });
-
-        return {
-            accessTokenNew,
-            refreshTokenNew
-        }
+    async logout(refreshToken) {
+        await this.blacklistedTokenRepository.create({ token: refreshToken });
     }
 }
 
