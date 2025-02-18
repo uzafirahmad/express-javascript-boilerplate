@@ -3,7 +3,7 @@ import authService from '../services/auth.service.js';
 class AuthController {
     async register(req, res) {
         try {
-            const { email, password, username } = req.body;
+            const { email, password, username } = req.data;
 
             const user = await authService.register(email, password, username);
 
@@ -18,7 +18,7 @@ class AuthController {
 
     async login(req, res) {
         try {
-            const { email, password } = req.body;
+            const { email, password } = req.data;
 
             const { accessToken, refreshToken } = await authService.login(email, password);
 
@@ -36,7 +36,7 @@ class AuthController {
 
     async refresh(req, res) {
         try {
-            const { refreshToken } = req.body;
+            const { refreshToken } = req.data;
 
             const { accessTokenNew, refreshTokenNew } = await authService.refresh(refreshToken);
 
