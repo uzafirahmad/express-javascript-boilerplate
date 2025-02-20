@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import connectToDatabase from './config/mongodb.js';
-import { redisConnection } from './config/redis.js';
+import mongoDBService from './config/mongodb.js';
+import redisService from './config/redis.js';
 import http from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth.routes.js';
@@ -26,10 +26,10 @@ const io = new Server(server, {
 });
 
 // Database connection
-connectToDatabase();
+mongoDBService.connect()
 
 // Redis connection
-redisConnection();
+redisService.connect()
 
 // REST routes
 app.use('/auth', authRoutes);

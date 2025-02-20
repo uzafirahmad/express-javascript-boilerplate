@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import MongooseDatabaseOperations from '../repository/mongoose.repository.js';
+import DatabaseRepository from '../repository/database.repository.js';
 import jwt from 'jsonwebtoken'
 import randomString from 'randomstring'
 import { User, BlacklistedToken, RefreshToken } from '../models/auth.models.js'
@@ -8,20 +8,22 @@ import authUtils from '../utils/auth.utils.js';
 
 
 class AuthService {
+    #userRepository;
+    #blacklistedTokenRepository;
+
     constructor() {
-        this.userRepository = new MongooseDatabaseOperations(User);
-        this.refreshTokenRepository = new MongooseDatabaseOperations(RefreshToken);
-        this.blacklistedTokenRepository = new MongooseDatabaseOperations(BlacklistedToken);
+        this.#userRepository = new DatabaseRepository(User);
+        this.#blacklistedTokenRepository = new DatabaseRepository(BlacklistedToken);
     }
 
     async register(email, password, username) {
-        const existingEmail = await this.userRepository.findOne({ email });
+        const existingEmail = await this.#userRepository.findOne({ email });
 
         if (existingEmail) {
             throw new CustomError("User with this email already exists.", 409);
         }
 
-        const existingUsername = await this.userRepository.findOne({ username });
+        const existingUsername = await this.#userRepository.findOne({ username });
         if (existingUsername) {
             throw new CustomError("User with this username already exists.", 409);
         }
@@ -29,7 +31,7 @@ class AuthService {
         const salt = await bcrypt.genSalt(10);
         const securePassword = await bcrypt.hash(password, salt);
 
-        return await this.userRepository.create({
+        return await this.#userRepository.create({
             email,
             username,
             password: securePassword,
@@ -37,7 +39,7 @@ class AuthService {
     }
 
     async login(email, password) {
-        const user = await this.userRepository.findOne({ email });
+        const user = await this.#userRepository.findOne({ email });
         if (!user) {
             throw new CustomError("Error logging in", 401);
         }
@@ -62,7 +64,7 @@ class AuthService {
     async refresh(refreshToken) {
         try {
             // Check if the token is blacklisted
-            const isBlacklisted = await this.blacklistedTokenRepository.findOne({ token: refreshToken });
+            const isBlacklisted = await this.#blacklistedTokenRepository.findOne({ token: refreshToken });
             if (isBlacklisted) {
                 throw new CustomError("Token has been invalidated", 401);
             }
@@ -88,7 +90,7 @@ class AuthService {
             const refreshTokenNew = await authUtils.generateRefreshToken(item);
 
             // Blacklist the used refresh token so it cannot be reused
-            await this.blacklistedTokenRepository.create({ token: refreshToken });
+            await this.#blacklistedTokenRepository.create({ token: refreshToken });
 
             return { accessTokenNew, refreshTokenNew };
         } catch (error) {
@@ -97,7 +99,7 @@ class AuthService {
     }
 
     async logout(refreshToken) {
-        await this.blacklistedTokenRepository.create({ token: refreshToken });
+        await this.#blacklistedTokenRepository.create({ token: refreshToken });
     }
 }
 

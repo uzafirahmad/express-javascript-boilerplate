@@ -5,12 +5,15 @@ import { CompactEncrypt, compactDecrypt } from 'jose';
 import { TextEncoder } from 'util';
 
 class AuthUtils {
+    #secretKey
+    #jwtSecret
+
     constructor() {
-        this.jwtSecret = process.env.JWT_SECRET;
+        this.#jwtSecret = process.env.JWT_SECRET;
 
-        const keyBuffer = createHash('sha256').update(this.jwtSecret).digest();
+        const keyBuffer = createHash('sha256').update(this.#jwtSecret).digest();
 
-        this.secretKey = createSecretKey(keyBuffer);
+        this.#secretKey = createSecretKey(keyBuffer);
     }
 
     verifyAccessToken(token) {
@@ -24,7 +27,7 @@ class AuthUtils {
     generateAccessToken(payload) {
         return jwt.sign(
             { ...payload, tokenType: 'access' },
-            this.jwtSecret,
+            this.#jwtSecret,
             { expiresIn: "5m" }
         );
     }
@@ -43,14 +46,14 @@ class AuthUtils {
             encoder.encode(JSON.stringify(tokenPayload))
         )
             .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
-            .encrypt(this.secretKey);
+            .encrypt(this.#secretKey);
 
         return jwe;
     }
 
     async decryptRefreshToken(token) {
         try {
-            const { plaintext } = await compactDecrypt(token, this.secretKey);
+            const { plaintext } = await compactDecrypt(token, this.#secretKey);
             const payload = JSON.parse(new TextDecoder().decode(plaintext));
             return payload;
         } catch (error) {
