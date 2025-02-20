@@ -62,43 +62,59 @@ class AuthService {
     }
 
     async refresh(refreshToken) {
-        try {
-            // Check if the token is blacklisted
-            const isBlacklisted = await this.#blacklistedTokenRepository.findOne({ token: refreshToken });
-            if (isBlacklisted) {
-                throw new CustomError("Token has been invalidated", 401);
-            }
-
-            // Decrypt the refresh token to get the payload
-            const decoded = await authUtils.decryptRefreshToken(refreshToken);
-
-            // Check if the refresh token has expired
-            const currentTime = Math.floor(Date.now() / 1000);
-            if (decoded.exp < currentTime) {
-                throw new CustomError("Refresh token has expired", 401);
-            }
-
-            // Verify it's actually a refresh token
-            if (decoded.tokenType !== 'refresh') {
-                throw new CustomError("Invalid token type", 401);
-            }
-
-            const item = authUtils.createPayload(decoded)
-
-            // Generate new tokens
-            const accessTokenNew = authUtils.generateAccessToken(item);
-            const refreshTokenNew = await authUtils.generateRefreshToken(item);
-
-            // Blacklist the used refresh token so it cannot be reused
-            await this.#blacklistedTokenRepository.create({ token: refreshToken });
-
-            return { accessTokenNew, refreshTokenNew };
-        } catch (error) {
-            throw new CustomError("Invalid refresh token", 401);
+        // Check if the token is blacklisted
+        const isBlacklisted = await this.#blacklistedTokenRepository.findOne({ token: refreshToken });
+        if (isBlacklisted) {
+            throw new CustomError("Token has been invalidated", 401);
         }
+
+        // Decrypt the refresh token to get the payload
+        const decoded = await authUtils.decryptRefreshToken(refreshToken);
+
+        // Check if the refresh token has expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            throw new CustomError("Refresh token has expired", 401);
+        }
+
+        // Verify it's actually a refresh token
+        if (decoded.tokenType !== 'refresh') {
+            throw new CustomError("Invalid token type", 401);
+        }
+
+        const item = authUtils.createPayload(decoded)
+
+        // Generate new tokens
+        const accessTokenNew = authUtils.generateAccessToken(item);
+        const refreshTokenNew = await authUtils.generateRefreshToken(item);
+
+        // Blacklist the used refresh token so it cannot be reused
+        await this.#blacklistedTokenRepository.create({ token: refreshToken });
+
+        return { accessTokenNew, refreshTokenNew };
     }
 
     async logout(refreshToken) {
+        // Check if the token is blacklisted
+        const isBlacklisted = await this.#blacklistedTokenRepository.findOne({ token: refreshToken });
+        if (isBlacklisted) {
+            throw new CustomError("Token has been invalidated", 401);
+        }
+
+        // Decrypt the refresh token to get the payload
+        const decoded = await authUtils.decryptRefreshToken(refreshToken);
+
+        // Check if the refresh token has expired
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+            throw new CustomError("Refresh token has expired", 401);
+        }
+
+        // Verify it's actually a refresh token
+        if (decoded.tokenType !== 'refresh') {
+            throw new CustomError("Invalid token type", 401);
+        }
+
         await this.#blacklistedTokenRepository.create({ token: refreshToken });
     }
 }

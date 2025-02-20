@@ -41,6 +41,14 @@ class AuthDTO {
                 .withMessage('Refresh token is required')
         ];
     }
+
+    logoutDTO() {
+        return [
+            body('refreshToken')
+                .notEmpty()
+                .withMessage('Refresh token is required')
+        ];
+    }
 }
 
 const authDTO = new AuthDTO();

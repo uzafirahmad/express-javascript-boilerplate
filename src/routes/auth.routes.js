@@ -24,4 +24,10 @@ router.post(
     (req, res) => authController.refresh(req, res)
 );
 
+router.post(
+    "/logout",
+    validateDTO(authDTO.logoutDTO()),
+    (req, res) => authController.logout(req, res)
+);
+
 export default router;

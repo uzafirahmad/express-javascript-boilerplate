@@ -51,6 +51,23 @@ class AuthController {
             res.status(status).json({ message });
         }
     }
+
+    async logout(req, res) {
+        try {
+            const { refreshToken } = req.data;
+
+            await authService.logout(refreshToken);
+
+            res.status(200).json({
+                message: "logged out",
+            });
+
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
 }
 
 const authController = new AuthController()
