@@ -5,6 +5,24 @@ class DatabaseRepository {
         this.#model = model;
     }
 
+    async find(filter, populate = '', options = {}) {
+        try {
+            let query = this.#model.find(filter);
+
+            if (populate && populate !== "") {
+                query = query.populate(populate);
+            }
+
+            if (options.sort) {
+                query = query.sort(options.sort);
+            }
+
+            return await query;
+        } catch (error) {
+            throw new Error(`Error in find operation: ${error.message}`);
+        }
+    }
+
     async findOne(filter, populate = '') {
         try {
             return (populate && populate !== "")
@@ -47,6 +65,10 @@ class DatabaseRepository {
         } catch (error) {
             throw new Error(`Error in updateOne operation: ${error.message}`);
         }
+    }
+
+    async findAll() {
+        return await this.#model.find({});;
     }
 }
 

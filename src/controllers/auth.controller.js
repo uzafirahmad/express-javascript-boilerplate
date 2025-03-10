@@ -68,6 +68,60 @@ class AuthController {
             res.status(status).json({ message });
         }
     }
+
+    async updateAccountInfo(req, res) {
+        try {
+            const user = req.user
+            const { username } = req.data;
+
+            const data = await authService.updateAccountInfo(username, user);
+
+            res.status(200).json({
+                message: data.message,
+                success: data.success,
+                accessToken: data.accessToken
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async updatePassword(req, res) {
+        try {
+            const user = req.user
+            const { current_password, new_password } = req.data;
+
+            const data = await authService.updatePassword(user, current_password, new_password);
+
+            res.status(200).json({
+                message: data.message,
+                success: data.success,
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async delete(req, res) {
+        try {
+            const user = req.user
+
+            const deleted = await authService.delete(user);
+
+            res.status(200).json({
+                message: "User deleted successfully",
+                deleted,
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
 }
 
 const authController = new AuthController()

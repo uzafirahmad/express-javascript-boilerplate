@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto'
 
 const UserSchema = new mongoose.Schema({
     email: {
@@ -15,10 +16,15 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    date: {
+    joinedAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    tokenVersion: {
+        type: String,
+        required: true,
+        default: () => crypto.randomBytes(16).toString('hex')
+    },
 });
 
 const BlacklistedTokenSchema = new mongoose.Schema({
@@ -37,26 +43,5 @@ const BlacklistedTokenSchema = new mongoose.Schema({
     }
 });
 
-const RefreshTokenSchema = new mongoose.Schema({
-    refreshToken: {
-        type: String,
-        required: true
-    },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    expires: {
-        type: Date,
-        default: () => {
-            const currentDate = new Date();
-            currentDate.setDate(currentDate.getDate() + 10); // Add 10 days
-            return currentDate;
-        }
-    }
-});
-
 export const BlacklistedToken = mongoose.model('BlacklistedToken', BlacklistedTokenSchema);
 export const User = mongoose.model('User', UserSchema);
-export const RefreshToken = mongoose.model('RefreshToken', RefreshTokenSchema);

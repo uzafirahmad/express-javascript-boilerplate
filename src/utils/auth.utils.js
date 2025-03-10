@@ -61,12 +61,18 @@ class AuthUtils {
         }
     }
 
-    createPayload(user) {
-        return {
+    createPayload(user, forAccessToken = true) {
+        const basePayload = {
             id: user.id ? user.id : user._id,
-            email: user.email,
-            username: user.username
+            tokenVersion: user.tokenVersion
+        };
+
+        if (forAccessToken) {
+            basePayload.email = user.email;
+            basePayload.username = user.username;
         }
+
+        return basePayload;
     }
 }
 

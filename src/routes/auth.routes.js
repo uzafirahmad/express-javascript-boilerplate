@@ -8,26 +8,46 @@ const router = express.Router();
 
 router.post(
     "/register",
-    validateDTO(authDTO.registerDTO()),
+    validateDTO(authDTO.register()),
     (req, res) => authController.register(req, res)
 );
 
 router.post(
     "/login",
-    validateDTO(authDTO.loginDTO()),
+    validateDTO(authDTO.login()),
     (req, res) => authController.login(req, res)
 );
 
 router.post(
     "/refresh",
-    validateDTO(authDTO.refreshDTO()),
+    validateDTO(authDTO.refresh()),
     (req, res) => authController.refresh(req, res)
 );
 
 router.post(
     "/logout",
-    validateDTO(authDTO.logoutDTO()),
+    validateDTO(authDTO.logout()),
     (req, res) => authController.logout(req, res)
+);
+
+router.delete(
+    "/delete",
+    fetchUser,
+    (req, res) => authController.delete(req, res)
+);
+
+router.put(
+    "/update-password",
+    fetchUser,
+    validateDTO(authDTO.updatePassword()),
+    (req, res) => authController.updatePassword(req, res)
+);
+
+router.put(
+    "/update-account-info",
+    fetchUser,
+    validateDTO(authDTO.updateAccountInfo()),
+    (req, res) => authController.updateAccountInfo(req, res)
 );
 
 export default router;
