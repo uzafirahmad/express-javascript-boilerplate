@@ -50,4 +50,16 @@ router.put(
     (req, res) => authController.updateAccountInfo(req, res)
 );
 
+router.post(
+    "/reset-password-email",
+    validateDTO(authDTO.resetPasswordEmail()),
+    (req, res) => authController.resetPasswordEmail(req, res)
+);
+
+router.put(
+    "/reset-password-submit",
+    validateDTO(authDTO.resetPasswordSubmit()),
+    (req, res) => authController.resetPasswordSubmit(req, res)
+);
+
 export default router;

@@ -8,7 +8,6 @@ class AuthController {
             const user = await authService.register(email, password, username);
 
             res.status(201).json({ message: "User created successfully", user });
-
         } catch (err) {
             const status = err.statusCode || 500;
             const message = err.statusCode ? err.message : "Internal server error";
@@ -26,7 +25,6 @@ class AuthController {
                 accessToken,
                 refreshToken,
             });
-
         } catch (err) {
             const status = err.statusCode || 500;
             const message = err.statusCode ? err.message : "Internal server error";
@@ -44,7 +42,6 @@ class AuthController {
                 accessToken: accessTokenNew,
                 refreshToken: refreshTokenNew,
             });
-
         } catch (err) {
             const status = err.statusCode || 500;
             const message = err.statusCode ? err.message : "Internal server error";
@@ -77,8 +74,7 @@ class AuthController {
             const data = await authService.updateAccountInfo(username, user);
 
             res.status(200).json({
-                message: data.message,
-                success: data.success,
+                message: "Account info updated successfully",
                 accessToken: data.accessToken
             });
         } catch (err) {
@@ -93,11 +89,10 @@ class AuthController {
             const user = req.user
             const { current_password, new_password } = req.data;
 
-            const data = await authService.updatePassword(user, current_password, new_password);
+            await authService.updatePassword(user, current_password, new_password);
 
             res.status(200).json({
-                message: data.message,
-                success: data.success,
+                message: "Password updated successfully",
             });
         } catch (err) {
             const status = err.statusCode || 500;
@@ -110,11 +105,42 @@ class AuthController {
         try {
             const user = req.user
 
-            const deleted = await authService.delete(user);
+            await authService.delete(user);
 
             res.status(200).json({
                 message: "User deleted successfully",
-                deleted,
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async resetPasswordEmail(req, res) {
+        try {
+            const { email } = req.data;
+
+            await authService.resetPasswordEmail(email);
+
+            res.status(200).json({
+                message: "Password reset email sent",
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async resetPasswordSubmit(req, res) {
+        try {
+            const { password, token } = req.data;
+
+            await authService.resetPasswordSubmit(password, token);
+
+            res.status(200).json({
+                message: "Password reset successful",
             });
         } catch (err) {
             const status = err.statusCode || 500;

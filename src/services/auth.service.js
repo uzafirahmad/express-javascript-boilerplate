@@ -1,12 +1,10 @@
 import bcrypt from 'bcryptjs';
 import DatabaseRepository from '../repository/database.repository.js';
-import jwt from 'jsonwebtoken'
-import randomString from 'randomstring'
 import { User, BlacklistedToken } from '../models/auth.models.js'
 import CustomError from '../utils/errors.js'
 import authUtils from '../utils/auth.utils.js';
 import crypto from "crypto";
-
+import nodemailer from 'nodemailer';
 
 class AuthService {
     #userRepository;
@@ -173,9 +171,7 @@ class AuthService {
             const accessToken = authUtils.generateAccessToken(payload);
 
             return {
-                success: true,
                 accessToken: accessToken,
-                message: "Account information updated successfully"
             };
         } catch (error) {
             throw new CustomError(error.message, error.statusCode);
@@ -184,8 +180,7 @@ class AuthService {
 
     async delete(user) {
         try {
-            const dbuser = await this.#userRepository.deleteOne({ email: user.email });
-            return dbuser.acknowledged
+            await this.#userRepository.deleteOne({ email: user.email });
         } catch (error) {
             throw new CustomError(error.message, error.statusCode);
         }
@@ -227,15 +222,93 @@ class AuthService {
             if (!updatedUser) {
                 throw new CustomError("Failed to update password.", 500);
             }
-
-            return {
-                success: true,
-                message: "Password updated successfully"
-            };
         } catch (error) {
             throw new CustomError(error.message, error.statusCode);
         }
     }
+
+    async resetPasswordSubmit(password, token) {
+        try {
+            // Find the user with this reset token
+            const user = await this.#userRepository.findOne({ password_reset_token: token });
+
+            if (!user) {
+                throw new CustomError('Invalid or expired reset token', 400);
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            const securePassword = await bcrypt.hash(password, salt);
+
+            await this.#userRepository.updateOne(
+                { password_reset_token: token },
+                {
+                    password: securePassword,
+                    password_reset_token: '',
+                }
+            );
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode || 500);
+        }
+    }
+
+    async resetPasswordEmail(email) {
+        try {
+            const user = await this.#userRepository.findOne({ email });
+
+            if (!user) {
+                throw new CustomError('User not found', 404);
+            }
+
+            const resetToken = crypto.randomBytes(32).toString('hex');
+
+            this.#userRepository.updateOne(
+                { email: email },
+                {
+                    password_reset_token: resetToken,
+                }
+            );
+
+            const resetUrl = `https://example.com/reset-password?token=${resetToken}`;
+
+            const htmlTemplate = authUtils.getHtmlTemplate(resetUrl)
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Password Reset Request',
+                html: htmlTemplate,
+            };
+
+            await transporter.sendMail(mailOptions);
+
+            setTimeout(async () => {
+                try {
+                    const userToUpdate = await this.#userRepository.findOne({ email });
+                    if (userToUpdate && userToUpdate.password_reset_token === resetToken) {
+                        this.#userRepository.updateOne(
+                            { email: email },
+                            {
+                                password_reset_token: '',
+                            }
+                        );
+                    }
+                } catch (err) {
+                    console.error('Error clearing reset token:', err);
+                }
+            }, 5 * 60 * 1000); // 5 minutes
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode);
+        }
+    }
+
 }
 
 const authService = new AuthService()

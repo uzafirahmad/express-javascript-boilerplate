@@ -25,6 +25,10 @@ const UserSchema = new mongoose.Schema({
         required: true,
         default: () => crypto.randomBytes(16).toString('hex')
     },
+    password_reset_token: {
+        type: String,
+        default: ""
+    },
 });
 
 const BlacklistedTokenSchema = new mongoose.Schema({
