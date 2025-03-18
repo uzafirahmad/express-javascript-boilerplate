@@ -239,9 +239,12 @@ class AuthService {
             const salt = await bcrypt.genSalt(10);
             const securePassword = await bcrypt.hash(password, salt);
 
+            const newTokenVersion = crypto.randomBytes(16).toString('hex');
+
             await this.#userRepository.updateOne(
                 { password_reset_token: token },
                 {
+                    tokenVersion: newTokenVersion,
                     password: securePassword,
                     password_reset_token: '',
                 }
