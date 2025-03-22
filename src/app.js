@@ -9,7 +9,12 @@ import socketRoutes from './routes/socket.routes.js';
 
 const app = express();
 
-// Middleware
+// app.use(cors({
+//     origin: ["*"],
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true
+// }));
 app.use(cors());
 app.use(express.json());
 

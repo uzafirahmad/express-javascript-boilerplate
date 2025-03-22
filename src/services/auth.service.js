@@ -45,13 +45,13 @@ class AuthService {
         try {
             const user = await this.#userRepository.findOne({ email });
             if (!user) {
-                throw new CustomError("Error logging in", 401);
+                throw new CustomError("Please enter a valid email and password", 401);
             }
 
             const isValidPassword = await bcrypt.compare(password, user.password);
 
             if (!isValidPassword) {
-                throw new CustomError("Error logging in", 401);
+                throw new CustomError("Please enter a valid email and password", 401);
             }
 
             const access_payload = authUtils.createPayload(user, true)

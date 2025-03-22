@@ -4,8 +4,6 @@ class AuthDTO {
     register() {
         return [
             body('email')
-                .notEmpty()
-                .withMessage('email is required')
                 .isEmail()
                 .withMessage('Please provide a valid email')
                 .normalizeEmail(),
@@ -31,10 +29,9 @@ class AuthDTO {
     login() {
         return [
             body('email')
-                .notEmpty()
-                .withMessage('email is required')
                 .isEmail()
-                .withMessage('Please provide a valid email'),
+                .withMessage('Please provide a valid email')
+                .normalizeEmail(),
             body('password')
                 .notEmpty()
                 .withMessage('password is required')
@@ -88,8 +85,9 @@ class AuthDTO {
     resetPasswordEmail() {
         return [
             body('email')
-                .notEmpty()
-                .withMessage('email is required'),
+                .isEmail()
+                .withMessage('Please provide a valid email')
+                .normalizeEmail(),
         ];
     }
 
