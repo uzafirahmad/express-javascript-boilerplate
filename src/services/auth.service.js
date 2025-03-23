@@ -271,7 +271,7 @@ class AuthService {
                 }
             );
 
-            const resetUrl = `https://example.com/reset-password?token=${resetToken}`;
+            const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
 
             const htmlTemplate = authUtils.getHtmlTemplate(resetUrl)
 

@@ -1,17 +1,46 @@
-## ENV's
-Upload these 2 files inside the root directory
+# 📌 Project Setup Guide  
 
-.env.production
-.env.development
+## 📂 Environment Variables (`.env` Files)  
+Upload the following files inside the **root directory**:  
+- `.env.production`  
+- `.env.development`  
 
-Create JWT_SECRET, NODE_ENV and DATABASE_URL fields in the ENV
+Each file should contain the following fields:  
+```plaintext
+JWT_SECRET=your_jwt_secret
+NODE_ENV=production_or_development
+EMAIL_USER=your_email@example.com
+EMAIL_PASS=your_email_password
+DATABASE_URL=your_database_url
+```
+Set `NODE_ENV` to either `production` or `development` as needed.  
 
-## Config
-Run redis, using redis-server
+---
 
-## Start server commands
-npm run dev
-npm run prod
+## ⚙️ Configuration  
+Ensure **Redis** is running before starting the server:  
+```sh
+redis-server
+```
 
-## Dockerize
+---
+
+## 🚀 Start Server Commands  
+- **Development Mode:**  
+  ```sh
+  npm run dev
+  ```
+- **Production Mode:**  
+  ```sh
+  npm run prod
+  ```
+
+---
+
+## 🐳 Docker Deployment  
+To build and start the application using Docker, run:  
+```sh
 docker-compose up --build
+```
+
+---

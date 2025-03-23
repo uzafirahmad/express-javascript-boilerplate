@@ -103,6 +103,7 @@ class AuthDTO {
                 .matches(/[A-Z]/)
                 .withMessage('Password must contain at least one uppercase letter'),
             body('token')
+                .trim()
                 .notEmpty()
                 .withMessage('token is required'),
         ];
