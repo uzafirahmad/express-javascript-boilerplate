@@ -1,6 +1,20 @@
 import authService from '../services/auth.service.js';
 
 class AuthController {
+    async googleCallback(req, res) {
+        try {
+            const { accessToken, refreshToken } = await authService.googleAuthCallback(req.user);
+
+            // Redirect to frontend with tokens
+            res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?` +
+                `accessToken=${accessToken}&` +
+                `refreshToken=${refreshToken}`);
+        } catch (err) {
+            console.error('Google auth callback error:', err);
+            res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
+        }
+    }
+
     async register(req, res) {
         try {
             const { email, password, username } = req.data;

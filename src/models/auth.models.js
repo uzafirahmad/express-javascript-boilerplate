@@ -25,6 +25,10 @@ const UserSchema = new mongoose.Schema({
         required: true,
         default: () => crypto.randomBytes(16).toString('hex')
     },
+    googleId: {
+        type: String,
+        default: null
+    },
     password_reset_token: {
         type: String,
         default: ""

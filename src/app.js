@@ -5,6 +5,7 @@ import redisService from './config/redis.js';
 import http from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth.routes.js';
+import passport from 'passport';
 import socketRoutes from './routes/socket.routes.js';
 
 const app = express();
@@ -16,6 +17,7 @@ const app = express();
 //     credentials: true
 // }));
 app.use(cors());
+app.use(passport.initialize());
 app.use(express.json());
 
 // Create HTTP server for both Express and Socket.IO

@@ -3,8 +3,23 @@ import fetchUser from '../middleware/fetchUser.js';
 import authController from '../controllers/auth.controller.js';
 import validateDTO from '../utils/validateDTO.js';
 import authDTO from '../dtos/auth.dto.js';
+import passport from 'passport';
 
 const router = express.Router();
+
+router.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get(
+    '/google/callback',
+    passport.authenticate('google', {
+        session: false,
+        failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`
+    }),
+    (req, res) => authController.googleCallback(req, res)
+);
 
 router.post(
     "/register",

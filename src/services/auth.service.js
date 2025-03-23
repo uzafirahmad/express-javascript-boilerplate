@@ -5,6 +5,8 @@ import CustomError from '../utils/errors.js'
 import authUtils from '../utils/auth.utils.js';
 import crypto from "crypto";
 import nodemailer from 'nodemailer';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 class AuthService {
     #userRepository;
@@ -13,7 +15,83 @@ class AuthService {
     constructor() {
         this.#userRepository = new DatabaseRepository(User);
         this.#blacklistedTokenRepository = new DatabaseRepository(BlacklistedToken);
+        this.initializeGoogleStrategy();
     }
+
+    initializeGoogleStrategy() {
+        passport.use(
+            new GoogleStrategy(
+                {
+                    clientID: process.env.GOOGLE_CLIENT_ID,
+                    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback',
+                    scope: ['profile', 'email']
+                },
+                async (accessToken, refreshToken, profile, done) => {
+                    try {
+                        // Find user by Google ID
+                        let user = await this.#userRepository.findOne({ googleId: profile.id });
+
+                        // If user doesn't exist, check if there's an account with same email
+                        if (!user) {
+                            const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+
+                            if (email) {
+                                user = await this.#userRepository.findOne({ email });
+
+                                // If user exists with email but no Google ID, update with Google ID
+                                if (user) {
+                                    user = await this.#userRepository.updateOne(
+                                        { _id: user._id },
+                                        { googleId: profile.id }
+                                    );
+                                } else {
+                                    // Create new user
+                                    const username = profile.displayName.replace(/\s+/g, '').toLowerCase() +
+                                        crypto.randomBytes(2).toString('hex');
+
+                                    user = await this.#userRepository.create({
+                                        email,
+                                        username,
+                                        googleId: profile.id,
+                                        password: crypto.randomBytes(16).toString('hex') // Random password for Google users
+                                    });
+                                }
+                            } else {
+                                return done(new CustomError('No email found from Google profile', 400));
+                            }
+                        }
+
+                        return done(null, user);
+                    } catch (error) {
+                        return done(error);
+                    }
+                }
+            )
+        );
+    }
+
+    async googleAuthCallback(user) {
+        try {
+            if (!user) {
+                throw new CustomError("Authentication failed", 401);
+            }
+
+            const access_payload = authUtils.createPayload(user, true);
+            const refresh_payload = authUtils.createPayload(user, false);
+
+            const accessToken = authUtils.generateAccessToken(access_payload);
+            const refreshToken = await authUtils.generateRefreshToken(refresh_payload);
+
+            return {
+                accessToken,
+                refreshToken
+            };
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode || 500);
+        }
+    }
+
 
     async register(email, password, username) {
         try {
