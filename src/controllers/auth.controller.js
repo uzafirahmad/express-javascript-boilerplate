@@ -1,9 +1,10 @@
 import authService from '../services/auth.service.js';
+import googleAuthService from '../services/google.auth.service.js';
 
 class AuthController {
     async googleCallback(req, res) {
         try {
-            const { accessToken, refreshToken } = await authService.googleAuthCallback(req.user);
+            const { accessToken, refreshToken } = await googleAuthService.googleAuthCallback(req.user);
 
             // Redirect to frontend with tokens
             res.redirect(`${process.env.FRONTEND_URL}/oauth/google?` +
