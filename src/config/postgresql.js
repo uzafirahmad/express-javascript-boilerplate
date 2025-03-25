@@ -11,7 +11,7 @@ class PostgreSQLService {
     async connect() {
         try {
             await this.#prisma.$connect();
-            console.log("Successfully connected to PostgreSQL using Prisma!");
+            console.log("Successfully connected to PostgreSQL!");
             return this.#prisma;
         } catch (error) {
             console.error("Error connecting to PostgreSQL:", error);
