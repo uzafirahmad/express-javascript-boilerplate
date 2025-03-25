@@ -1,20 +1,23 @@
 import bcrypt from 'bcryptjs';
-import DatabaseRepository from '../repository/database.repository.js';
-import { User, BlacklistedToken } from '../models/auth.models.js'
+import MongoRepository from '../repository/mongoose.repository.js';
 import CustomError from '../utils/errors.js'
 import authUtils from '../utils/auth.utils.js';
 import crypto from "crypto";
 import nodemailer from 'nodemailer';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import PrismaRepository from '../repository/prisma.repository.js';
+
 
 class AuthService {
     #userRepository;
     #blacklistedTokenRepository;
+    #oauthAccountRepository;
 
     constructor() {
-        this.#userRepository = new DatabaseRepository(User);
-        this.#blacklistedTokenRepository = new DatabaseRepository(BlacklistedToken);
+        this.#userRepository = new PrismaRepository('User');
+        this.#blacklistedTokenRepository = new PrismaRepository('BlacklistedToken');
+        this.#oauthAccountRepository = new PrismaRepository('OAuthAccount');
         this.initializeGoogleStrategy();
     }
 
@@ -24,43 +27,63 @@ class AuthService {
                 {
                     clientID: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback',
+                    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8000/auth/google/callback',
                     scope: ['profile', 'email']
                 },
                 async (accessToken, refreshToken, profile, done) => {
                     try {
-                        // Find user by Google ID
-                        let user = await this.#userRepository.findOne({ googleId: profile.id });
+                        // Find OAuth account by provider ID
+                        let oauthAccount = await this.#oauthAccountRepository.findOne({
+                            provider: 'google',
+                            provider_id: profile.id
+                        });
 
-                        // If user doesn't exist, check if there's an account with same email
-                        if (!user) {
+                        // If OAuth account doesn't exist, check by email
+                        if (!oauthAccount) {
                             const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
 
-                            if (email) {
-                                user = await this.#userRepository.findOne({ email });
-
-                                // If user exists with email but no Google ID, update with Google ID
-                                if (user) {
-                                    user = await this.#userRepository.updateOne(
-                                        { _id: user._id },
-                                        { googleId: profile.id }
-                                    );
-                                } else {
-                                    // Create new user
-                                    const username = profile.displayName.replace(/\s+/g, '').toLowerCase() +
-                                        crypto.randomBytes(2).toString('hex');
-
-                                    user = await this.#userRepository.create({
-                                        email,
-                                        username,
-                                        googleId: profile.id,
-                                        password: crypto.randomBytes(16).toString('hex') // Random password for Google users
-                                    });
-                                }
-                            } else {
+                            if (!email) {
                                 return done(new CustomError('No email found from Google profile', 400));
                             }
+
+                            // Find user by email
+                            let user = await this.#userRepository.findOne({ email });
+
+                            // If user exists, create OAuth account
+                            if (user) {
+                                oauthAccount = await this.#oauthAccountRepository.create({
+                                    provider: 'google',
+                                    provider_id: profile.id,
+                                    user_id: user.id
+                                });
+                            } else {
+                                // Create new user and OAuth account
+                                const username = profile.displayName.replace(/\s+/g, '').toLowerCase() +
+                                    crypto.randomBytes(2).toString('hex');
+
+                                const password = crypto.randomBytes(16).toString('hex')
+                                const salt = await bcrypt.genSalt(10);
+                                const securePassword = await bcrypt.hash(password, salt);
+
+                                // Create user first
+                                user = await this.#userRepository.create({
+                                    email,
+                                    username,
+                                    account_type: "google",
+                                    password: securePassword
+                                });
+
+                                // Then create associated OAuth account
+                                oauthAccount = await this.#oauthAccountRepository.create({
+                                    provider: 'google',
+                                    provider_id: profile.id,
+                                    user_id: user.id
+                                });
+                            }
                         }
+
+                        // Fetch the full user details
+                        const user = await this.#userRepository.findById(oauthAccount.user_id);
 
                         return done(null, user);
                     } catch (error) {
@@ -165,13 +188,13 @@ class AuthService {
                 throw new CustomError("Invalid token type", 401);
             }
 
-            const user = await this.#userRepository.findOne({ _id: decoded.id });
+            const user = await this.#userRepository.findOne({ id: decoded.id });
 
             if (!user) {
                 throw new CustomError("User not found", 404);
             }
 
-            if (decoded.tokenVersion !== user.tokenVersion) {
+            if (decoded.token_version !== user.token_version) {
                 throw new CustomError("Token has been invalidated due to password change", 401);
             }
 
@@ -216,7 +239,7 @@ class AuthService {
 
     async updateAccountInfo(username, user) {
         try {
-            const userData = await this.#userRepository.findOne({ _id: user.id });
+            const userData = await this.#userRepository.findOne({ id: user.id });
 
             if (!userData) {
                 throw new CustomError("User not found.", 404);
@@ -224,7 +247,7 @@ class AuthService {
 
             const existingUser = await this.#userRepository.findOne({
                 username: username,
-                _id: { $ne: user.id } // Exclude current user from check
+                id: { $ne: user.id } // Exclude current user from check
             });
 
             if (existingUser) {
@@ -232,7 +255,7 @@ class AuthService {
             }
 
             const updatedUser = await this.#userRepository.updateOne(
-                { _id: user.id },
+                { id: user.id },
                 {
                     username: username,
                 }
@@ -242,7 +265,7 @@ class AuthService {
                 throw new CustomError("Failed to update account information.", 500);
             }
 
-            const updatedUserData = await this.#userRepository.findOne({ _id: user.id });
+            const updatedUserData = await this.#userRepository.findOne({ id: user.id });
 
             const payload = authUtils.createPayload(updatedUserData, true);
 
@@ -266,7 +289,7 @@ class AuthService {
 
     async updatePassword(user, current_password, new_password) {
         try {
-            const userData = await this.#userRepository.findOne({ _id: user.id });
+            const userData = await this.#userRepository.findOne({ id: user.id });
 
             if (!userData) {
                 throw new CustomError("User not found.", 404);
@@ -290,9 +313,9 @@ class AuthService {
             const newTokenVersion = crypto.randomBytes(16).toString('hex');
 
             const updatedUser = await this.#userRepository.updateOne(
-                { _id: user.id },
+                { id: user.id },
                 {
-                    tokenVersion: newTokenVersion,
+                    token_version: newTokenVersion,
                     password: securePassword,
                 }
             );
@@ -322,7 +345,7 @@ class AuthService {
             await this.#userRepository.updateOne(
                 { password_reset_token: token },
                 {
-                    tokenVersion: newTokenVersion,
+                    token_version: newTokenVersion,
                     password: securePassword,
                     password_reset_token: '',
                 }
@@ -340,13 +363,15 @@ class AuthService {
                 throw new CustomError('User not found', 404);
             }
 
+            if (user.account_type !== 'normal') {
+                throw new CustomError(`You signed up using ${user.account_type}. Please log in with ${user.account_type}`, 400);
+            }
+
             const resetToken = crypto.randomBytes(32).toString('hex');
 
             this.#userRepository.updateOne(
                 { email: email },
-                {
-                    password_reset_token: resetToken,
-                }
+                { password_reset_token: resetToken }
             );
 
             const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
@@ -376,9 +401,7 @@ class AuthService {
                     if (userToUpdate && userToUpdate.password_reset_token === resetToken) {
                         this.#userRepository.updateOne(
                             { email: email },
-                            {
-                                password_reset_token: '',
-                            }
+                            { password_reset_token: '' }
                         );
                     }
                 } catch (err) {

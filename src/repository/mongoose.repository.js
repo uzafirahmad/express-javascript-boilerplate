@@ -1,4 +1,4 @@
-class DatabaseRepository {
+class MongoRepository {
     #model
 
     constructor(model) {
@@ -72,4 +72,4 @@ class DatabaseRepository {
     }
 }
 
-export default DatabaseRepository;
+export default MongoRepository;

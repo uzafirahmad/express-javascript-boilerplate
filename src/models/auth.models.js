@@ -16,18 +16,24 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    joinedAt: {
+    joined_at: {
         type: Date,
         default: Date.now
     },
-    tokenVersion: {
+    token_version: {
         type: String,
         required: true,
         default: () => crypto.randomBytes(16).toString('hex')
     },
-    googleId: {
+    oauth: {
+        google_id: {
+            type: String,
+            default: null
+        }
+    },
+    account_type: {
         type: String,
-        default: null
+        default: "normal"
     },
     password_reset_token: {
         type: String,
@@ -40,11 +46,11 @@ const BlacklistedTokenSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    dateAdded: {
+    date_added: {
         type: Date,
         default: Date.now
     },
-    createdAt: {
+    created_at: {
         type: Date,
         default: Date.now,
         expires: 7 * 24 * 60 * 60

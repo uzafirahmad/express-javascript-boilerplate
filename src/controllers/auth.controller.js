@@ -6,7 +6,7 @@ class AuthController {
             const { accessToken, refreshToken } = await authService.googleAuthCallback(req.user);
 
             // Redirect to frontend with tokens
-            res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?` +
+            res.redirect(`${process.env.FRONTEND_URL}/oauth/google?` +
                 `accessToken=${accessToken}&` +
                 `refreshToken=${refreshToken}`);
         } catch (err) {

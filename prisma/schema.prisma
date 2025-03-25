@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String         @id @default(uuid())
+  email                String         @unique
+  username             String         @unique
+  password             String
+  joined_at            DateTime       @default(now())
+  token_version        String         @default(dbgenerated("gen_random_uuid()"))
+  account_type         String         @default("normal")
+  password_reset_token String         @default("")
+  oauthAccounts        OAuthAccount[]
+}
+
+model OAuthAccount {
+  id          String @id @default(uuid())
+  provider    String // e.g., "google", "facebook", "github"
+  provider_id String @unique // Unique ID from the provider (e.g., Google ID)
+  user_id     String
+  user        User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model BlacklistedToken {
+  id         String   @id @default(uuid())
+  token      String
+  date_added DateTime @default(now())
+  created_at DateTime @default(now())
+  // @@index([created_at]) // For expiration functionality
+}
