@@ -1,14 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import mongoDBService from './config/mongodb.js';
 import redisService from './config/redis.js';
 import http from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth.routes.js';
 import passport from 'passport';
 import socketRoutes from './routes/socket.routes.js';
-import { User } from './models/auth.models.js';
-import postgresqlService from './config/postgresql.js';
+import postgreSQLService from './config/postgresql.js';
 
 const app = express();
 
@@ -28,24 +26,20 @@ app.use(cors({
 app.use(passport.initialize());
 app.use(express.json());
 
-// Create HTTP server for both Express and Socket.IO
 const server = http.createServer(app);
 
-// Initialize Socket.IO
 const io = new Server(server, {
     cors: {
-        origin: '*', // Allow all origins for testing purposes
+        origin: '*',
         methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type', 'Authorization'] // added for authorization headers
+        allowedHeaders: ['Content-Type', 'Authorization']
     }
 });
 
-// Database connection
 // mongoDBService.connect()
-postgresqlService.connect()
 
+postgreSQLService.connect()
 
-// Redis connection
 redisService.connect()
 
 // REST routes

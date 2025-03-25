@@ -1,11 +1,11 @@
-import postgresqlService from "../config/postgresql.js";
+import postgreSQLService from "../config/postgresql.js";
 
 class PrismaRepository {
     #prisma;
     #model;
 
     constructor(model) {
-        this.#prisma = postgresqlService.getPrisma();
+        this.#prisma = postgreSQLService.getPrisma();
         this.#model = model;
     }
 
@@ -39,6 +39,17 @@ class PrismaRepository {
         }
     }
 
+    async findById(id, include = {}, select = {}) {
+        try {
+            return await this.#prisma[this.#model].findUnique({
+                where: { id },
+                include: Object.keys(include).length ? include : undefined,
+                select: Object.keys(select).length ? select : undefined,
+            });
+        } catch (error) {
+            throw new Error(`Error in findById operation: ${error.message}`);
+        }
+    }
 
     async create(data) {
         try {
@@ -50,15 +61,14 @@ class PrismaRepository {
         }
     }
 
-    async findById(id, include = {}, select = {}) {
+    async createMany(data, options = {}) {
         try {
-            return await this.#prisma[this.#model].findUnique({
-                where: { id },
-                include: Object.keys(include).length ? include : undefined,
-                select: Object.keys(select).length ? select : undefined,
+            return await this.#prisma[this.#model].createMany({
+                data,
+                skipDuplicates: options.skipDuplicates || false,
             });
         } catch (error) {
-            throw new Error(`Error in findById operation: ${error.message}`);
+            throw new Error(`Error in createMany operation: ${error.message}`);
         }
     }
 
@@ -72,6 +82,24 @@ class PrismaRepository {
         }
     }
 
+    async deleteMany(filter) {
+        try {
+            return await this.#prisma[this.#model].deleteMany({
+                where: filter,
+            });
+        } catch (error) {
+            throw new Error(`Error in deleteMany operation: ${error.message}`);
+        }
+    }
+
+    async deleteAll() {
+        try {
+            return await this.#prisma[this.#model].deleteMany({});
+        } catch (error) {
+            throw new Error(`Error in deleteAll operation: ${error.message}`);
+        }
+    }
+
     async updateOne(filter, update) {
         try {
             return await this.#prisma[this.#model].update({
@@ -80,6 +108,17 @@ class PrismaRepository {
             });
         } catch (error) {
             throw new Error(`Error in updateOne operation: ${error.message}`);
+        }
+    }
+
+    async updateMany(filter, update) {
+        try {
+            return await this.#prisma[this.#model].updateMany({
+                where: filter,
+                data: update,
+            });
+        } catch (error) {
+            throw new Error(`Error in updateMany operation: ${error.message}`);
         }
     }
 

@@ -34,5 +34,5 @@ class PostgreSQLService {
     }
 }
 
-const postgresqlService = new PostgreSQLService();
-export default postgresqlService;
+const postgreSQLService = new PostgreSQLService();
+export default postgreSQLService;
