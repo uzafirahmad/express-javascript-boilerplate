@@ -5,6 +5,7 @@ import authUtils from '../utils/auth.utils.js';
 import crypto from "crypto";
 import nodemailer from 'nodemailer';
 import PrismaRepository from '../repository/prisma.repository.js';
+import emailService from './email.service.js';
 
 
 class AuthService {
@@ -274,26 +275,13 @@ class AuthService {
                 { password_reset_token: resetToken }
             );
 
-            const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+            const htmlTemplate = authUtils.getHtmlTemplate(`${process.env.FRONTEND_URL}/reset-password/${resetToken}`)
 
-            const htmlTemplate = authUtils.getHtmlTemplate(resetUrl)
-
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS,
-                },
-            });
-
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
+            await emailService.send({
                 to: email,
                 subject: 'Password Reset Request',
-                html: htmlTemplate,
-            };
-
-            await transporter.sendMail(mailOptions);
+                html: htmlTemplate
+            });
 
             setTimeout(async () => {
                 try {
