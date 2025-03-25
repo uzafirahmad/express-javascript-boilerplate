@@ -16,6 +16,7 @@ model User {
   token_version        String         @default(dbgenerated("gen_random_uuid()"))
   account_type         String         @default("normal")
   password_reset_token String         @default("")
+  verified             Boolean        @default(false)
   oauthAccounts        OAuthAccount[]
 }
 

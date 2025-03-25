@@ -44,16 +44,21 @@ class GoogleAuthService {
                                 return done(new CustomError('No email found from Google profile', 400));
                             }
 
-                            // Find user by email
                             let user = await this.#userRepository.findOne({ email });
 
                             // If user exists, create OAuth account
                             if (user) {
-                                oauthAccount = await this.#oauthAccountRepository.create({
-                                    provider: 'google',
-                                    provider_id: profile.id,
-                                    user_id: user.id
-                                });
+                                await Promise.all([
+                                    this.#userRepository.updateOne(
+                                        { id: user.id },
+                                        { verified: true }
+                                    ),
+                                    this.#oauthAccountRepository.create({
+                                        provider: 'google',
+                                        provider_id: profile.id,
+                                        user_id: user.id
+                                    }).then(result => oauthAccount = result)
+                                ]);
                             } else {
                                 // Create new user and OAuth account
                                 const username = profile.displayName.replace(/\s+/g, '').toLowerCase() +
@@ -67,6 +72,7 @@ class GoogleAuthService {
                                 user = await this.#userRepository.create({
                                     email,
                                     username,
+                                    verified: true,
                                     account_type: "google",
                                     password: securePassword
                                 });
@@ -80,7 +86,6 @@ class GoogleAuthService {
                             }
                         }
 
-                        // Fetch the full user details
                         const user = await this.#userRepository.findById(oauthAccount.user_id);
 
                         return done(null, user);
