@@ -49,10 +49,12 @@ class GoogleAuthService {
                             // If user exists, create OAuth account
                             if (user) {
                                 await Promise.all([
-                                    this.#userRepository.updateOne(
-                                        { id: user.id },
-                                        { verified: true }
-                                    ),
+                                    user.verified === false
+                                        ? this.#userRepository.updateOne(
+                                            { id: user.id },
+                                            { verified: true }
+                                        )
+                                        : Promise.resolve(),
                                     this.#oauthAccountRepository.create({
                                         provider: 'google',
                                         provider_id: profile.id,

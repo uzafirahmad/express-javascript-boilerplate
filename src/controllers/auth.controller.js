@@ -34,11 +34,12 @@ class AuthController {
         try {
             const { email, password } = req.data;
 
-            const { accessToken, refreshToken } = await authService.login(email, password);
+            const { accessToken, refreshToken, verified } = await authService.login(email, password);
 
             res.status(200).json({
                 accessToken,
                 refreshToken,
+                verified
             });
         } catch (err) {
             const status = err.statusCode || 500;
@@ -57,6 +58,44 @@ class AuthController {
                 accessToken: accessTokenNew,
                 refreshToken: refreshTokenNew,
             });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async checkEmail(req, res) {
+        try {
+            const { email } = req.data;
+
+            await authService.checkEmail(email);
+
+            res.status(200).json({ status: true });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async checkUsername(req, res) {
+        try {
+            const { username } = req.data;
+
+            await authService.checkUsername(username);
+
+            res.status(200).json({ status: true });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async checkPassword(req, res) {
+        try {
+            res.status(200).json({ status: true });
         } catch (err) {
             const status = err.statusCode || 500;
             const message = err.statusCode ? err.message : "Internal server error";

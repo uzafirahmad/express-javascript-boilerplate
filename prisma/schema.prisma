@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id                   String         @id @default(uuid())
-  email                String         @unique
-  username             String         @unique
-  password             String
-  joined_at            DateTime       @default(now())
-  token_version        String         @default(dbgenerated("gen_random_uuid()"))
-  account_type         String         @default("normal")
-  password_reset_token String         @default("")
-  verified             Boolean        @default(false)
-  oauthAccounts        OAuthAccount[]
+  id                         String         @id @default(uuid())
+  email                      String         @unique
+  username                   String         @unique
+  password                   String
+  joined_at                  DateTime       @default(now())
+  token_version              String         @default(dbgenerated("gen_random_uuid()"))
+  account_type               String         @default("normal")
+  account_verification_token String         @default("")
+  password_reset_token       String         @default("")
+  verified                   Boolean        @default(false)
+  oauthAccounts              OAuthAccount[]
 }
 
 model OAuthAccount {

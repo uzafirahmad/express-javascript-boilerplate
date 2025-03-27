@@ -34,6 +34,24 @@ router.post(
 );
 
 router.post(
+    "/check-email",
+    validateDTO(authDTO.checkEmail()),
+    (req, res) => authController.checkEmail(req, res)
+);
+
+router.post(
+    "/check-username",
+    validateDTO(authDTO.checkUsername()),
+    (req, res) => authController.checkUsername(req, res)
+);
+
+router.post(
+    "/check-password",
+    validateDTO(authDTO.checkPassword()),
+    (req, res) => authController.checkPassword(req, res)
+);
+
+router.post(
     "/refresh",
     validateDTO(authDTO.refresh()),
     (req, res) => authController.refresh(req, res)

@@ -19,16 +19,9 @@ class AuthService {
 
     async register(email, password, username) {
         try {
-            const existingEmail = await this.#userRepository.findOne({ email });
+            this.checkEmail(email)
 
-            if (existingEmail) {
-                throw new CustomError("User with this email already exists.", 409);
-            }
-
-            const existingUsername = await this.#userRepository.findOne({ username });
-            if (existingUsername) {
-                throw new CustomError("User with this username already exists.", 409);
-            }
+            this.checkUsername(username)
 
             const salt = await bcrypt.genSalt(10);
             const securePassword = await bcrypt.hash(password, salt);
@@ -50,6 +43,14 @@ class AuthService {
                 throw new CustomError("Please enter a valid email and password", 401);
             }
 
+            if (user.verified === false) {
+                return {
+                    accessToken: "",
+                    refreshToken: "",
+                    verified: false
+                }
+            }
+
             const isValidPassword = await bcrypt.compare(password, user.password);
 
             if (!isValidPassword) {
@@ -64,7 +65,8 @@ class AuthService {
 
             return {
                 accessToken,
-                refreshToken
+                refreshToken,
+                verified: true
             }
         } catch (error) {
             throw new CustomError(error.message, error.statusCode);
@@ -113,6 +115,30 @@ class AuthService {
         }
     }
 
+    async checkEmail(email) {
+        try {
+            const existingEmail = await this.#userRepository.findOne({ email });
+
+            if (existingEmail) {
+                throw new CustomError("User with this email already exists.", 409);
+            }
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode);
+        }
+    }
+
+    async checkUsername(username) {
+        try {
+            const existingUsername = await this.#userRepository.findOne({ username });
+
+            if (existingUsername) {
+                throw new CustomError("User with this username already exists.", 409);
+            }
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode);
+        }
+    }
+
     async logout(refreshToken) {
         try {
             const isBlacklisted = await this.#blacklistedTokenRepository.findOne({ token: refreshToken });
@@ -136,7 +162,6 @@ class AuthService {
             throw new CustomError(error.message, error.statusCode);
         }
     }
-
 
     async updateAccountInfo(username, user) {
         try {
@@ -216,6 +241,7 @@ class AuthService {
             const updatedUser = await this.#userRepository.updateOne(
                 { id: user.id },
                 {
+                    password_reset_token: '',
                     token_version: newTokenVersion,
                     password: securePassword,
                 }
