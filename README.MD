@@ -12,6 +12,10 @@ NODE_ENV=production_or_development
 EMAIL_USER=your_email@example.com
 EMAIL_PASS=your_email_password
 DATABASE_URL=your_database_url
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:8000/auth/google/callback
+FRONTEND_URL=http://localhost:3000
 ```
 Set `NODE_ENV` to either `production` or `development` as needed.  
 
