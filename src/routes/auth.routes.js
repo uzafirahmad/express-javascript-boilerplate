@@ -95,4 +95,17 @@ router.put(
     (req, res) => authController.resetPasswordSubmit(req, res)
 );
 
+router.post(
+    "/verify-account-email",
+    validateDTO(authDTO.verifyAccountEmail()),
+    (req, res) => authController.verifyAccountEmail(req, res)
+);
+
+router.put(
+    "/verify-account-submit",
+    validateDTO(authDTO.verifyAccountSubmit()),
+    (req, res) => authController.verifyAccountSubmit(req, res)
+);
+
+
 export default router;

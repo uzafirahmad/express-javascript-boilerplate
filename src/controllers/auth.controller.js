@@ -202,6 +202,56 @@ class AuthController {
             res.status(status).json({ message });
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    async verifyAccountEmail(req, res) {
+        try {
+            const { email } = req.data;
+
+            await authService.verifyAccountEmail(email);
+
+            res.status(200).json({
+                message: "Account verification email sent",
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
+
+    async verifyAccountSubmit(req, res) {
+        try {
+            const { token } = req.data;
+
+            const { accessToken, refreshToken } = await authService.verifyAccountSubmit(token);
+
+            res.status(200).json({
+                accessToken,
+                refreshToken
+            });
+        } catch (err) {
+            const status = err.statusCode || 500;
+            const message = err.statusCode ? err.message : "Internal server error";
+            res.status(status).json({ message });
+        }
+    }
 }
 
 const authController = new AuthController()

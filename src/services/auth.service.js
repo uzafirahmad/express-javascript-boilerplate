@@ -301,7 +301,7 @@ class AuthService {
                 { password_reset_token: resetToken }
             );
 
-            const htmlTemplate = authUtils.getHtmlTemplate(`${process.env.FRONTEND_URL}/reset-password/${resetToken}`)
+            const htmlTemplate = authUtils.getResetPasswordTemplate(`${process.env.FRONTEND_URL}/reset-password/${resetToken}`)
 
             await emailService.send({
                 to: email,
@@ -327,6 +327,59 @@ class AuthService {
         }
     }
 
+    async verifyAccountEmail(email) {
+        try {
+            const user = await this.#userRepository.findOne({ email });
+
+            if (!user) {
+                throw new CustomError('User not found', 404);
+            }
+
+            const htmlTemplate = authUtils.getVerifyAccountTemplate(`${process.env.FRONTEND_URL}/verify-account/${user.account_verification_token}`)
+
+            await emailService.send({
+                to: email,
+                subject: 'Account Verification',
+                html: htmlTemplate
+            });
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode);
+        }
+    }
+
+    async verifyAccountSubmit(token) {
+        try {
+            const user = await this.#userRepository.findOne({ account_verification_token: token });
+
+            if (!user) {
+                throw new CustomError('Invalid token', 400);
+            }
+
+            if (user.verified === true) {
+                throw new CustomError('User is already verified', 400);
+            }
+
+            await this.#userRepository.updateOne(
+                { account_verification_token: token },
+                {
+                    verified: true,
+                }
+            );
+
+            const access_payload = authUtils.createPayload(user, true)
+            const refresh_payload = authUtils.createPayload(user, false)
+
+            const accessToken = authUtils.generateAccessToken(access_payload);
+            const refreshToken = await authUtils.generateRefreshToken(refresh_payload);
+
+            return {
+                accessToken,
+                refreshToken,
+            }
+        } catch (error) {
+            throw new CustomError(error.message, error.statusCode || 500);
+        }
+    }
 }
 
 const authService = new AuthService()

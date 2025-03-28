@@ -143,6 +143,24 @@ class AuthDTO {
                 .withMessage('token is required'),
         ];
     }
+
+    verifyAccountSubmit() {
+        return [
+            body('token')
+                .trim()
+                .notEmpty()
+                .withMessage('token is required'),
+        ];
+    }
+
+    verifyAccountEmail() {
+        return [
+            body('email')
+                .isEmail()
+                .withMessage('Please provide a valid email')
+                .normalizeEmail(),
+        ];
+    }
 }
 
 const authDTO = new AuthDTO();

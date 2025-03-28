@@ -19,7 +19,7 @@ class AuthUtils {
     this.#secretKey = createSecretKey(keyBuffer);
   }
 
-  getHtmlTemplate(resetLink) {
+  getResetPasswordTemplate(resetLink) {
     try {
       // Read the template file
       const templatePath = path.join(path.join(process.cwd(), 'src', 'views'), 'resetPassword.html');
@@ -27,6 +27,25 @@ class AuthUtils {
 
       // Replace the placeholder with the actual reset link
       template = template.replace('${resetLink}', resetLink);
+
+      // Replace the year dynamically
+      template = template.replace('${currentYear}', new Date().getFullYear());
+
+      return template;
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      throw new CustomError('Failed to load email template', 500);
+    }
+  }
+
+  getVerifyAccountTemplate(verifyLink) {
+    try {
+      // Read the template file
+      const templatePath = path.join(path.join(process.cwd(), 'src', 'views'), 'verifyAccount.html');
+      let template = fs.readFileSync(templatePath, 'utf8');
+
+      // Replace the placeholder with the actual reset link
+      template = template.replace('${verifyLink}', verifyLink);
 
       // Replace the year dynamically
       template = template.replace('${currentYear}', new Date().getFullYear());

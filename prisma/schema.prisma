@@ -15,7 +15,7 @@ model User {
   joined_at                  DateTime       @default(now())
   token_version              String         @default(dbgenerated("gen_random_uuid()"))
   account_type               String         @default("normal")
-  account_verification_token String         @default("")
+  account_verification_token String         @unique @default(dbgenerated("gen_random_uuid()"))
   password_reset_token       String         @default("")
   verified                   Boolean        @default(false)
   oauthAccounts              OAuthAccount[]
